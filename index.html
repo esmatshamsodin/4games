@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Block party!</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+
+	<!-- javascript libraries -->
+	<script src="js/libs/three.min.js"></script>
+	<script src="js/libs/stats.min.js"></script>
+	<script src="js/libs/ShaderParticles.min.js"></script>
+
+	<script src="js/libs/Detector.js"></script>
+	<script src="js/libs/ConvexGeometry.js"></script>
+	<script src="js/libs/OrbitControls.js"></script>
+
+	<!-- our own javascript objects -->
+	<script src="/js/Level.js"></script>
+	<script src="/js/Wall.js"></script>
+	<script src="/js/BlockGenerator.js"></script>
+	<script src="/js/Game.js"></script>
+	<script src="/js/RandomMode.js"></script>
+	<script src="/js/LevelMode.js"></script>
+	<script src="/js/TutorialMode.js"></script>
+	<script src="/js/Block.js"></script>
+	<script src="/js/World.js"></script>
+	<script src="/js/LevelContent.js"></script>
+
+	<!-- other javascript functions -->
+	<script src="/js/controls.js"></script>
+	<script src="/js/gameUtils.js"></script>
+	<script src="/js/navigation.js"></script>
+
+	<div id="menu" class="nav">
+		<h1>Block Party</h1>
+		<a href="javascript: void(0)" class="menuItem" onclick="initGame(Game.MODE_TUTORIAL)">Tutorial</a>
+		<br>
+		<a href="javascript: void(0)" class="menuItem" onclick="initGame(Game.MODE_LEVEL)">Puzzles</a>
+		<br>
+		<a href="javascript: void(0)" class="menuItem" onclick="initGame(Game.MODE_RANDOM)">Freestyle</a>
+		<br>
+		<a href="javascript: void(0)" class="menuItem" onClick="showElementAndHideNav(instructions_doc)">Instructions</a>
+		<br>
+		<a href="javascript: void(0)" class="menuItem" onClick="refreshHighScore();showElementAndHideNav(highscore_doc)">Game Record</a>
+		<br>
+		<a href="javascript: void(0)" class="menuItem" onClick="showElementAndHideNav(about_doc)">About</a>
+		<br>
+	</div>	
+
+	<div id="levelModeMenu" class="nav">
+	</div>
+
+	<div id="instructions" class="nav">
+		<h1>Instructions</h1>
+		<br>
+		<a class="instructions">W,A,S,D / arrow keys = Move block</a>
+		<br>
+		<a class="instructions">1,2 = Rotate</a>
+		<br>
+		<a class="instructions">SPACE (puzzles) = Loop through movable blocks</a>
+		<br>
+		<a class="instructions">SPACE (freestyle) = Place block</a>
+		<br>
+		<a class="instructions">LEFT CLICK on block and DRAG (puzzles) = Move block</a>
+		<br>
+		<a class="instructions">LEFT CLICK and DRAG anywhere else = Rotate camera</a>
+		<br>
+		<a class="instructions">RIGHT CLICK and DRAG = Pan camera</a>		
+		<br>
+		<a class="instructions">MOUSE WHEEL = Zoom</a>
+		<br>		
+		<a class="instructions">ESC = Navigation menu</a>
+		<br>
+		<a href="javascript: void(0)" class="menuItem" onClick="showElementAndHideNav(menu_doc)">Main Menu</a>
+	</div>
+
+	<div id="highscore" class="nav">
+	</div>
+
+	<div id="confirmationPage" class="nav">
+		<h1>Are you sure?</h1>
+		<br>
+		<a href="javascript: void(0)" class="menuItem" onClick="clearLocalStorage();refreshHighScore();showElementAndHideNav(highscore)">Yes</a>
+		<br>
+		<a href="javascript: void(0)" class="menuItem" onClick="refreshHighScore();showElementAndHideNav(highscore)">No</a>
+		<br>
+	</div>
+
+	<div id="about" class="nav">
+		<h1>About</h1>
+		<br>
+		<p class="instructions">Created by <a class="link" href="https://github.com/pennyshen/" target="_blank">Penny Shen</a>, <a class="link" href="https://github.com/pingbattlespl0x" target="_blank">Nathan Shih</a>, and <a class="link" href="http://www.linkedin.com/pub/vincent-wang/19/341/89b" target="_blank">Vincent Wang</a> for COMP460 at Rice University with Dr. <a class="link" href="http://www.cs.rice.edu/~jwarren/" target="_blank">Joe Warren</a>.</p>
+		<br>
+		<p class="instructions">View source code on <a class="link" href="https://github.com/pennyshen/block_party" target="_blank">Github</a> or visit our <a class="link" href="https://www.facebook.com/pages/Block-Party/1410243285917441">facebook page</a>.</p>
+		<br>
+		<br>
+		<p class="instructions">Tutorial and Freestyle music- Space Forest by <a class="link" href="http://www.newgrounds.com/audio/listen/472958" target="_blank">Kassich</a></p>
+		<br>
+		<p class="instructions">Flatland music- Dragon Rock by <a class="link" href="http://www.newgrounds.com/audio/listen/221605" target="_blank">ellebirdy23</a></p>
+		<br>
+		<p class="instructions">Junkyard music- Not Heat Death by <a class="link" href="http://www.newgrounds.com/audio/listen/573362" target="_blank">Metastable-Steve</a></p>
+		<br>
+		<p class="instructions">Somaverse music- Invasion by <a class="link" href="http://www.newgrounds.com/audio/listen/531723" target="_blank">Hektik</a></p>
+		<br>
+		<p class="instructions">Monster Cube music- Chiptune Loop 32 by <a class="link" href="http://www.newgrounds.com/audio/listen/573292" target="_blank">Mnargl</a></p>
+		<br>
+
+		<a href="javascript: void(0)" class="menuItem" onClick="showElementAndHideNav(menu_doc)">Main Menu</a>
+		<br>
+	</div>
+
+
+
+	<div id="endScreen" class="nav">
+	</div>
+
+	<div id="pauseScreen" class="nav">
+		<h1>Paused</h1>
+		<br>
+		<a href="javascript: void(0)" class="menuItem" onClick="resumeGame()">Resume</a>
+		<br>
+		<a href="javascript: void(0)" class="menuItem" onClick="restartLevel()">Restart</a>
+		<br>
+		<a href="javascript: void(0)" class="menuItem" onClick="backToMenu()">Exit Game</a>
+		<br>
+	</div>
+
+	<div id="selectBlockScreen" class="nav">
+	</div>
+
+    <div id="game">
+	    <div id="randomInfo" class="info">
+	    	<font color ="white">	  
+				Time left: <span id="randomTimer">0:00 </span>
+				<br>
+				Score: <span id="randomScore">0 </span>
+				<br>
+				Levels left: <span id="dimension">0</span>
+				<br>				
+				<span id="nextBlock">Next block:</span>
+				<br>
+			</font>
+	    </div>
+	    <div id="levelInfo" class="info">
+	    	<font color ="white">
+		    	Level: <span id="numLevel" class="helper"></span>
+		    	<br>
+		    	<span id="bestTime" class="helper"></span>
+		    	<br>
+		    	<span id="timer" class="helper">0:00</span>
+		    	<br>
+	    	</font>
+	    </div>
+	    <span id="hint"></span>
+	    <span id="mute"></span>
+	    <span id="center_tooltip"></span>
+    </div>
+
+    <div id="loading" class="nav">
+    	<p id="loading_text">Loading</p>
+    </div>
+
+<!--     <audio id="main_music" loop>
+    	<source id="mainMusicSource" src="http://pennyshen.github.io/block_party/sounds/spaceForest.mp3" type="audio/mp3">
+	</audio> -->
+
+    <audio id="success_sound">
+    	<source src="sounds/ahh.mp3" type="audio/mp3" />
+	</audio>
+
+    <audio id="fail_sound">
+    	<source src="sounds/aww.mp3" type="audio/mp3" />
+	</audio>
+
+    <audio id="ding_sound">
+    	<source src="sounds/ding.mp3" type="audio/mp3" />
+	</audio>
+
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	  ga('create', 'UA-50473823-1', 'pennyshen.github.io');
+	  ga('send', 'pageview');
+
+	</script>	
+
+	<script>
+
+		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+		var container, stats;
+		var camera, scene, renderer, projector;
+		var mouse2D, mouse3D;
+		var cameraInitPos = new THREE.Vector3(5, 325, 694);
+		var cameraInitRotation = new THREE.Euler(-0.4379673247787578, 0.00652451553634967, 0.00305539757043725, "XYZ");
+
+		var theta = 45 * 0.5;
+		var successSound = document.getElementById("success_sound");
+		var failSound = document.getElementById("fail_sound");
+		var dingSound = document.getElementById("ding_sound");
+
+		var rollOverMesh;
+		var floor;
+		var i, intersector;
+		var gameBoardOrientation;
+		var controls;
+		var time = Date.now();
+		var mute = false;
+
+		// nav items
+		var menu_doc = document.getElementById("menu");
+		var endScreen_doc = document.getElementById("endScreen");
+		var instructions_doc = document.getElementById("instructions");
+		var pauseScreen_doc = document.getElementById("pauseScreen");
+		var levelModeMenu_doc = document.getElementById("levelModeMenu");
+		var selectBlockScreen_doc = document.getElementById("selectBlockScreen");
+		var loading_doc = document.getElementById("loading");
+		var loading_text_doc = document.getElementById("loading_text");
+		var about_doc = document.getElementById("about");
+		var highscore_doc = document.getElementById("highscore");
+		var confirmationPage_doc = document.getElementById("confirmationPage");
+
+		var timer = document.getElementById( 'timer');
+		var randomTimer_doc = document.getElementById( 'randomTimer' );
+		var best_time = document.getElementById( 'bestTime');
+		var numLevel_doc = document.getElementById( 'numLevel' );
+		var blocker = document.getElementById("blocker");
+		var hint_doc = document.getElementById("hint");
+		var mute_doc = document.getElementById("mute");
+		var center_tooltip_doc = document.getElementById("center_tooltip");
+		var randomInfo_doc = document.getElementById("randomInfo");
+		var levelInfo_doc = document.getElementById("levelInfo");
+		var dimension_doc = document.getElementById("dimension");
+		var randomScore_doc = document.getElementById("randomScore");
+		var nextBlock_doc = document.getElementById("nextBlock");
+
+		var nav_items = [menu_doc, endScreen_doc, instructions_doc, pauseScreen_doc, levelModeMenu_doc,
+			selectBlockScreen_doc, loading_doc, about_doc, highscore_doc, confirmationPage_doc];
+		var info_items = [randomInfo_doc, hint_doc, mute_doc, center_tooltip_doc, levelInfo_doc];
+
+		var backToMenu_string = '<a href="javascript: void(0)" class="menuItem" onClick="backToMenu()">Menu</a><br>';
+		var backToMainMenu_string = '<a href="javascript: void(0)" class="menuItem backButton" onClick="showElementAndHideNav(menu_doc)">Main Menu</a>';
+
+
+
+
+		var STEP_SIZE = 50;
+		var ALIVE_TIME = 100 * 1000.0;	// time during which the block is alive, in milliseconds
+		var FLOOR_SIZE = 1000;
+		var FLOOR_SIZE_HALF = FLOOR_SIZE / 2;
+		var INIT_OPACITY = 1.0;
+
+		var pos_illegal_code = 0;
+
+		var timeRemaining, timeElapsed, mins, secs;
+
+        var colorAgainstTexture = 0xffffff;
+        var floor
+        // variables for the background images
+        var backgroundMesh;
+        var backgroundScene;
+        var backgroundCamera;
+        var backgroundRatio = 1440 / 900;
+
+        var gameInProgress = false;
+        var toCheckGoal = false;
+        var keysEnabled = false;
+
+        // Used in initParticles()
+		var emitter, particleGroup;
+
+		var projector = new THREE.Projector();
+		var raycaster = new THREE.Raycaster();		
+		var INTERSECTED = null;
+		var MOVING = null;
+		var SELECTED = null;
+		var MOVINGPIECE = null;
+		var MOVINGMAIN = null;
+
+		var makingLevels = false;
+
+		var unlockLevels = false;
+		//uncomment to clear level information
+		//localStorage.clear();
+
+		var game;
+
+		var mainMusic;
+		var textures = {};
+		var sounds = {};
+
+		loadFiles();
+		init();
+		// initParticles();
+		animate();
+
+		function loadFiles() {
+			var numLoaded = 0;
+			var myWorld;
+			showElementAndHideNav(loading_doc);
+
+			// first go through everything once to get all the images and music that need to be loaded
+			for (var i = 0; i < LevelContent.allTypes.length; i++) {
+				myWorld = LevelContent.worlds[LevelContent.allTypes[i]];
+				textures[myWorld.picture] = true;
+				sounds[myWorld.music] = true;
+			}
+
+			var musicToLoad = Object.keys(sounds);
+			var pictureToLoad = Object.keys(textures);
+			var numToLoad = musicToLoad.length + pictureToLoad.length;
+			var sound;
+			console.log(musicToLoad);
+			console.log(pictureToLoad);
+
+			for (var i = 0; i < musicToLoad.length; i++) {
+				sound = document.createElement("audio");
+				sound.loop = true;
+
+				sound.innerHTML = "<source src='" + "http://pennyshen.github.io/block_party/sounds/" + musicToLoad[i] + "?bust=" + Date.now() + "' type='audio/mp3'/>";
+				document.body.appendChild(sound);
+				if (canPlayAudio(sound)) {
+					sounds[musicToLoad[i]] = sound;
+					sound.addEventListener("loadeddata", function() {
+						numLoaded++;
+						checkAllLoaded(numLoaded, numToLoad);
+					});
+				} else {
+					sounds[i] = null;
+					numLoaded++;
+					checkAllLoaded(numLoaded, numToLoad);
+				}
+			}
+
+			for (var i = 0; i < pictureToLoad.length; i++) {
+				textures[pictureToLoad[i]] = THREE.ImageUtils.loadTexture( 'textures/' + pictureToLoad[i], undefined, function() {
+	        		numLoaded++;
+	        		console.log("image: " + numLoaded);
+	        		checkAllLoaded(numLoaded, numToLoad);
+        		} );
+			}		        	
+		}
+
+		function init() {
+			container = document.getElementById( 'game' );
+			document.body.appendChild( container );
+
+			var background_scale = 100;	
+        	
+        	// Create your background scene
+        	backgroundScene = new THREE.Scene();
+        	backgroundCamera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+        	backgroundScene.add( backgroundCamera );
+
+			backgroundMesh = new THREE.Mesh(
+	        	new THREE.PlaneGeometry(backgroundRatio * background_scale, background_scale, 0),	
+	        	new THREE.MeshBasicMaterial());
+			backgroundMesh.position.set(0, 0, -background_scale);	// must set z to negative because the normal is (0, 0, 1)
+	    	backgroundMesh.material.depthTest = false;
+	    	backgroundMesh.material.depthWrite = false;  
+	    	backgroundMesh.visible = true;      	
+	    	backgroundScene.add( backgroundMesh );
+			backgroundCamera.lookAt(backgroundMesh.position);        	
+
+			camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+
+
+			scene = new THREE.Scene();
+			renderer = new THREE.WebGLRenderer( { antialias: true } );
+			renderer.setClearColor(0x000000,0);
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			renderer.shadowMapEnabled = true;
+
+			controls = new THREE.OrbitControls( camera );
+			controls.rotateSpeed = 0.5;
+			controls.minPolarAngle = 0.0;
+			controls.maxPolarAngle = Math.PI * 4 / 9;
+			controls.noKeys = true;
+			controls.enabled = false;
+			scene.add( controls );
+
+			// picking
+			mouse2D = new THREE.Vector3( 0, 10000, 0.5 );
+
+			// basic scene
+			floor = new Wall(FLOOR_SIZE);
+			floor.plane.receiveShadow = true;
+			floor.addToScene(scene);
+
+			// placeholder so there's no error
+			rollOverMesh = new THREE.Mesh();
+
+			initLights(scene, true);
+
+			container.appendChild( renderer.domElement );
+
+			stats = new Stats();
+			stats.domElement.style.position = 'absolute';
+			stats.domElement.style.bottom = '0px';
+			container.appendChild( stats.domElement );
+
+			document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+			document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+			document.addEventListener( 'keydown', onDocumentKeyDown, false );
+			document.addEventListener( 'keyup', onDocumentKeyUp, false );
+			window.addEventListener( 'resize', onWindowResize, false );
+
+			// initialize loca storage
+			initLocalStorage();
+		}
+
+        // Create particle group and emitter
+        function initParticles() {
+        	particleGroup = new SPE.Group({
+        		texture: THREE.ImageUtils.loadTexture('./textures/star2.png'),
+        		maxAge: 2,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                depthTest: false
+        	});
+
+        	emitter = new SPE.Emitter({
+        		positionSpread: new THREE.Vector3(1000, 1000, 1000),
+
+                acceleration: new THREE.Vector3(0, 0, 10),
+
+        		velocity: new THREE.Vector3(0, 0, 10),
+
+        		colorStart: new THREE.Color('white'),
+        		colorEnd: new THREE.Color('white'),
+        		sizeStart: 35,
+        		sizeEnd: 35,
+                opacityStart: 0,
+                opacityMiddle: .5,
+                opacityEnd: 0,
+
+        		particleCount: 10000
+        	});
+
+        	particleGroup.addEmitter( emitter );
+        	scene.add( particleGroup.mesh );
+        }		
+
+		function animate() {
+			requestAnimationFrame( animate );
+			if (gameInProgress) {
+				controls.update();
+				render();
+				stats.update();
+			}
+			time = Date.now();
+		}
+
+
+		function render() {
+			renderer.autoClear = false;
+			renderer.clear();
+			renderer.render( backgroundScene , backgroundCamera );
+			renderer.render( scene, camera );
+
+			if (game.previewScene) {
+				renderer.clear( false, true, false );
+				renderer.render(game.previewScene, game.previewCamera);
+			}
+
+			calculateGameBoardOrientation();
+
+			// update time
+			timeElapsed = Math.max(game.gameTime, 0);
+			secs = Math.floor(timeElapsed / 1000.0);
+			mins = Math.floor(secs / 60);
+			timer.innerHTML = ("0" + mins).slice(-2) + ":" + ("0" + secs%60).slice(-2);
+			if (game.mode == Game.MODE_RANDOM) {
+				if (game.startTimer) {
+					timeRemaining = Math.max(0, game.timeLimit*60*1000 - timeElapsed);
+					if (timeRemaining <= 0) {
+						game.endGame();
+					}					
+					secs = Math.floor(timeRemaining / 1000.0);
+					mins = Math.floor(secs / 60);
+					randomTimer_doc.innerHTML = ("0" + mins).slice(-2) + ":" + ("0" + secs%60).slice(-2);
+					randomScore_doc.innerHTML = secs * game.scorePerSecond;
+				} else {
+					// timer not started - decrease flashMesh opacity
+					game.flashMesh.material.opacity = (1000.0 * game.numCountDownInit - game.currentAliveTime) / (1000.0 * game.numCountDownInit);
+				}
+			}
+
+			game.gameTime += Date.now() - time;
+			game.currentAliveTime += Date.now() - time;
+
+			if (game.mode != Game.MODE_RANDOM) {
+				intersectToHighlight();
+				if (game.isPreviewing) {
+					game.fadingInAndOut();
+				}
+			} 
+		}
+
+	</script>
+
+</body>
+
+</html>
